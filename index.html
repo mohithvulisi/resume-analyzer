@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,300;1,9..144,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf8f5;--sf:#f2ede3;--card:#fff;
+  --bdr:#e5dcd0;--bdr2:#cfc0ae;
+  --tx:#1c1814;--tx2:#6b5f52;--mt:#a09080;
+  --ac:#c0622f;--ac2:#e8895a;
+  --green:#4a7c59;--red:#a63d2f;
+  --r:20px;
+}
+html,body{min-height:100%;background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(--tx)}
+body{overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 20% 20%,rgba(192,98,47,0.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(192,98,47,0.04) 0%,transparent 60%);}
+#wrap{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:60px 24px 80px}
+.header{text-align:center;margin-bottom:64px}
+.header-eye{font-size:10px;font-weight:700;letter-spacing:0.35em;text-transform:uppercase;color:var(--ac);margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:10px}
+.header-eye::before,.header-eye::after{content:'';height:1px;width:32px;background:var(--ac);opacity:0.4}
+.header-title{font-family:'Fraunces',serif;font-style:italic;font-size:72px;font-weight:300;color:var(--tx);line-height:0.9;letter-spacing:-3px;margin-bottom:20px}
+.header-title span{color:var(--ac)}
+.header-sub{font-size:14px;color:var(--tx2);line-height:1.8;max-width:420px;margin:0 auto}
+.tabs{display:flex;gap:0;background:var(--sf);border:1px solid var(--bdr);border-radius:14px;padding:4px;margin-bottom:32px}
+.tab{flex:1;padding:12px;border-radius:10px;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--mt);background:transparent;transition:all 0.3s ease}
+.tab.active{background:var(--card);color:var(--ac);box-shadow:0 2px 8px rgba(0,0,0,0.06);border:1px solid var(--bdr)}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:36px;margin-bottom:20px;box-shadow:0 2px 16px rgba(28,24,20,0.04)}
+.card-label{font-size:9px;font-weight:700;letter-spacing:0.28em;text-transform:uppercase;color:var(--mt);margin-bottom:20px}
+#drop-zone,#drop-zone-2{border:1.5px dashed var(--bdr2);border-radius:14px;padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.3s ease;background:var(--sf);margin-bottom:24px;}
+#drop-zone:hover,#drop-zone.drag,#drop-zone-2:hover,#drop-zone-2.drag{border-color:var(--ac);background:rgba(192,98,47,0.04);transform:translateY(-2px)}
+#drop-zone.loaded,#drop-zone-2.loaded{border-color:var(--green);border-style:solid;background:rgba(74,124,89,0.04)}
+.drop-icon{width:48px;height:48px;border-radius:12px;background:var(--bdr);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:var(--mt);transition:all 0.3s}
+.drop-title{font-size:15px;font-weight:600;color:var(--tx);margin-bottom:6px}
+.drop-sub{font-size:12px;color:var(--mt)}
+.drop-file{font-size:12px;color:var(--green);margin-top:10px;font-weight:600;display:none}
+#resume-input,#resume-input-2{display:none}
+.input-group{margin-bottom:20px}
+.input-label{font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--mt);margin-bottom:10px;display:block}
+.input-field{width:100%;background:var(--sf);border:1px solid var(--bdr);border-radius:12px;padding:14px 18px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--tx);outline:none;transition:all 0.3s}
+.input-field::placeholder{color:var(--mt)}
+.input-field:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(192,98,47,0.08);background:var(--card)}
+.btn-primary{width:100%;padding:16px;border-radius:12px;background:var(--ac);border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:white;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+.btn-primary:hover{background:var(--ac2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(192,98,47,0.25)}
+.btn-primary:active{transform:scale(0.97)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+.spinner{width:36px;height:36px;border:2px solid var(--bdr);border-top-color:var(--ac);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;color:var(--mt);letter-spacing:0.1em}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.score-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:40px;margin-bottom:20px;text-align:center;box-shadow:0 2px 16px rgba(28,24,20,0.04);position:relative;overflow:hidden}
+.score-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,var(--ac),var(--ac2))}
+.score-label{font-size:9px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:var(--mt);margin-bottom:24px}
+.score-circle{width:150px;height:150px;margin:0 auto 24px;position:relative}
+.score-circle svg{transform:rotate(-90deg)}
+.score-circle circle{fill:none;stroke-width:7;stroke-linecap:round}
+.score-bg{stroke:var(--bdr)}
+.score-fill{stroke:var(--ac);transition:stroke-dashoffset 1.5s cubic-bezier(0.34,1.56,0.64,1)}
+.score-number{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.score-val{font-family:'Bebas Neue',sans-serif;font-size:56px;color:var(--ac);line-height:1}
+.score-max{font-size:11px;color:var(--mt);font-weight:600}
+.score-summary{font-size:14px;color:var(--tx2);line-height:1.8;max-width:500px;margin:0 auto 24px}
+.ats-bar-wrap{max-width:400px;margin:0 auto}
+.ats-label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ats-label{font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--mt)}
+.ats-val{font-size:12px;font-weight:700;color:var(--ac)}
+.ats-bar{height:5px;background:var(--bdr);border-radius:5px;overflow:hidden}
+.ats-fill{height:100%;background:linear-gradient(to right,var(--ac),var(--ac2));border-radius:5px;width:0;transition:width 1.2s cubic-bezier(0.34,1.56,0.64,1) 0.3s}
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:600px){.results-grid{grid-template-columns:1fr}}
+.result-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:24px;box-shadow:0 1px 8px rgba(28,24,20,0.03)}
+.result-card-title{font-size:9px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--mt)}
+.dot-green{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+.dot-red{width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0}
+.dot-ac{width:6px;height:6px;border-radius:50%;background:var(--ac);flex-shrink:0}
+.result-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.result-list li{font-size:13px;color:var(--tx2);line-height:1.6;padding-left:16px;position:relative}
+.result-list li::before{content:'';position:absolute;left:0;top:8px;width:4px;height:4px;border-radius:50%;background:var(--bdr2)}
+.keywords-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:24px;margin-bottom:16px;box-shadow:0 1px 8px rgba(28,24,20,0.03)}
+.keywords-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.keyword{background:rgba(192,98,47,0.08);border:1px solid rgba(192,98,47,0.18);border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--ac)}
+.suggestion-card{background:rgba(192,98,47,0.04);border:1px solid rgba(192,98,47,0.18);border-left:3px solid var(--ac);border-radius:16px;padding:24px;margin-bottom:24px}
+.suggestion-text{font-size:14px;color:var(--tx);line-height:1.8}
+.roles-header{margin-bottom:28px}
+.roles-name{font-family:'Fraunces',serif;font-style:italic;font-size:32px;color:var(--tx);margin-bottom:6px}
+.roles-sub{font-size:13px;color:var(--tx2)}
+.skills-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+.skill-tag{background:var(--sf);border:1px solid var(--bdr);border-radius:100px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--tx2)}
+.role-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:24px;margin-bottom:12px;box-shadow:0 1px 8px rgba(28,24,20,0.03);display:flex;align-items:center;gap:20px;transition:all 0.3s ease;animation:fadeUp 0.5s ease both}
+.role-card:hover{border-color:var(--bdr2);transform:translateY(-2px);box-shadow:0 4px 20px rgba(28,24,20,0.08)}
+.role-match{flex-shrink:0;width:64px;height:64px;border-radius:14px;background:var(--sf);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;flex-direction:column}
+.role-match-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--ac);line-height:1}
+.role-match-label{font-size:8px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--mt)}
+.role-info{flex:1}
+.role-title{font-size:16px;font-weight:700;color:var(--tx);margin-bottom:4px}
+.role-reason{font-size:13px;color:var(--tx2);line-height:1.6;margin-bottom:8px}
+.role-salary{font-size:11px;font-weight:700;letter-spacing:0.05em;color:var(--ac);background:rgba(192,98,47,0.08);padding:3px 10px;border-radius:100px;display:inline-block}
+.career-tip{background:var(--sf);border:1px solid var(--bdr);border-radius:16px;padding:24px;margin-top:8px}
+.career-tip-label{font-size:9px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;color:var(--mt);margin-bottom:10px}
+.career-tip-text{font-size:14px;color:var(--tx);line-height:1.8;font-style:italic}
+.btn-secondary{display:block;margin:28px auto 0;padding:12px 32px;border-radius:100px;background:transparent;border:1.5px solid var(--bdr2);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--tx2);transition:all 0.3s ease}
+.btn-secondary:hover{border-color:var(--ac);color:var(--ac)}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="header">
+    <div class="header-eye">AI-Powered Career Tool</div>
+    <div class="header-title">Resume<br><span>Analyzer</span></div>
+    <div class="header-sub">Upload your resume and instantly get a detailed score, feedback, and the best job roles matched to your skills.</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('analyze')">Analyze Resume</button>
+    <button class="tab" onclick="switchTab('roles')">Find Best Roles</button>
+  </div>
+
+  <!-- TAB 1 -->
+  <div id="tab-analyze">
+    <div id="upload-section">
+      <div class="card">
+        <div class="card-label">Upload Resume</div>
+        <div id="drop-zone" onclick="document.getElementById('resume-input').click()">
+          <div class="drop-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+          <div class="drop-title">Drop your resume here</div>
+          <div class="drop-sub">Click to browse · PDF files only</div>
+          <div class="drop-file" id="file-name"></div>
+        </div>
+        <input type="file" id="resume-input" accept=".pdf">
+        <div class="input-group">
+          <label class="input-label">Target Job Role</label>
+          <input type="text" class="input-field" id="job-role" placeholder="e.g. Data Scientist, Frontend Developer, Product Manager">
+        </div>
+        <button class="btn-primary" id="analyze-btn" onclick="analyze()">Analyze My Resume</button>
+      </div>
+    </div>
+    <div id="loading" style="display:none;text-align:center;padding:60px"><div class="spinner"></div><div class="loading-text">Analyzing your resume...</div></div>
+    <div id="results" style="display:none;animation:fadeUp 0.5s ease both">
+      <div class="score-card">
+        <div class="score-label">Overall Resume Score</div>
+        <div class="score-circle">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <circle class="score-bg" cx="75" cy="75" r="64" stroke-dasharray="402" stroke-dashoffset="0"/>
+            <circle class="score-fill" id="score-arc" cx="75" cy="75" r="64" stroke-dasharray="402" stroke-dashoffset="402"/>
+          </svg>
+          <div class="score-number"><div class="score-val" id="score-val">0</div><div class="score-max">/100</div></div>
+        </div>
+        <div class="score-summary" id="score-summary"></div>
+        <div class="ats-bar-wrap">
+          <div class="ats-label-row"><span class="ats-label">ATS Compatibility</span><span class="ats-val" id="ats-val">0%</span></div>
+          <div class="ats-bar"><div class="ats-fill" id="ats-fill"></div></div>
+        </div>
+      </div>
+      <div class="results-grid">
+        <div class="result-card"><div class="result-card-title"><div class="dot-green"></div>Strengths</div><ul class="result-list" id="strengths-list"></ul></div>
+        <div class="result-card"><div class="result-card-title"><div class="dot-red"></div>Weaknesses</div><ul class="result-list" id="weaknesses-list"></ul></div>
+      </div>
+      <div class="keywords-card"><div class="result-card-title"><div class="dot-ac"></div>Missing Keywords</div><div class="keywords-wrap" id="keywords-wrap"></div></div>
+      <div class="suggestion-card"><div class="result-card-title" style="margin-bottom:10px"><div class="dot-ac"></div>Top Suggestion</div><div class="suggestion-text" id="suggestion-text"></div></div>
+      <button class="btn-secondary" onclick="retry()">Analyze Another Resume</button>
+    </div>
+  </div>
+
+  <!-- TAB 2 -->
+  <div id="tab-roles" style="display:none">
+    <div id="upload-section-2">
+      <div class="card">
+        <div class="card-label">Upload Resume</div>
+        <div id="drop-zone-2" onclick="document.getElementById('resume-input-2').click()">
+          <div class="drop-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+          <div class="drop-title">Drop your resume here</div>
+          <div class="drop-sub">We'll detect your skills automatically</div>
+          <div class="drop-file" id="file-name-2"></div>
+        </div>
+        <input type="file" id="resume-input-2" accept=".pdf">
+        <button class="btn-primary" id="roles-btn" onclick="suggestRoles()" style="margin-top:8px">Find My Best Roles</button>
+      </div>
+    </div>
+    <div id="loading-2" style="display:none;text-align:center;padding:60px"><div class="spinner"></div><div class="loading-text">Finding your best career matches...</div></div>
+    <div id="role-results" style="display:none;animation:fadeUp 0.5s ease both">
+      <div class="roles-header">
+        <div class="roles-name" id="roles-name">Your Best Career Matches</div>
+        <div class="roles-sub">Based on your skills and experience</div>
+      </div>
+      <div class="skills-wrap" id="skills-wrap"></div>
+      <div id="roles-list"></div>
+      <div class="career-tip"><div class="career-tip-label">Career Advice</div><div class="career-tip-text" id="career-tip"></div></div>
+      <button class="btn-secondary" onclick="retryRoles()">Try Another Resume</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(tab==='analyze'&&i===0)||(tab==='roles'&&i===1)));
+  document.getElementById('tab-analyze').style.display=tab==='analyze'?'block':'none';
+  document.getElementById('tab-roles').style.display=tab==='roles'?'block':'none';
+}
+let selectedFile=null;
+document.getElementById('resume-input').addEventListener('change',e=>{
+  selectedFile=e.target.files[0];
+  if(selectedFile){document.getElementById('drop-zone').classList.add('loaded');document.getElementById('file-name').style.display='block';document.getElementById('file-name').textContent=selectedFile.name;}
+});
+const dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');const file=e.dataTransfer.files[0];if(file&&file.type==='application/pdf'){selectedFile=file;dz.classList.add('loaded');document.getElementById('file-name').style.display='block';document.getElementById('file-name').textContent=file.name;}});
+let selectedFile2=null;
+document.getElementById('resume-input-2').addEventListener('change',e=>{
+  selectedFile2=e.target.files[0];
+  if(selectedFile2){document.getElementById('drop-zone-2').classList.add('loaded');document.getElementById('file-name-2').style.display='block';document.getElementById('file-name-2').textContent=selectedFile2.name;}
+});
+const dz2=document.getElementById('drop-zone-2');
+dz2.addEventListener('dragover',e=>{e.preventDefault();dz2.classList.add('drag');});
+dz2.addEventListener('dragleave',()=>dz2.classList.remove('drag'));
+dz2.addEventListener('drop',e=>{e.preventDefault();dz2.classList.remove('drag');const file=e.dataTransfer.files[0];if(file&&file.type==='application/pdf'){selectedFile2=file;dz2.classList.add('loaded');document.getElementById('file-name-2').style.display='block';document.getElementById('file-name-2').textContent=file.name;}});
+async function analyze(){
+  if(!selectedFile){alert('Please upload a resume PDF!');return;}
+  const jobRole=document.getElementById('job-role').value.trim();
+  if(!jobRole){alert('Please enter a target job role!');return;}
+  document.getElementById('upload-section').style.display='none';
+  document.getElementById('loading').style.display='block';
+  document.getElementById('analyze-btn').disabled=true;
+  const fd=new FormData();fd.append('file',selectedFile);fd.append('job_role',jobRole);
+  try{const res=await fetch('/analyze',{method:'POST',body:fd});const data=await res.json();showResults(data);}
+  catch(e){alert('Something went wrong.');retry();}
+}
+function showResults(data){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('results').style.display='block';
+  const score=data.score||0,circumference=402,offset=circumference-(score/100)*circumference;
+  setTimeout(()=>{document.getElementById('score-arc').style.strokeDashoffset=offset;animateNumber('score-val',0,score,1200);},200);
+  document.getElementById('score-summary').textContent=data.summary||'';
+  const ats=data.ats_score||0;
+  document.getElementById('ats-val').textContent=ats+'%';
+  setTimeout(()=>{document.getElementById('ats-fill').style.width=ats+'%';},400);
+  const sl=document.getElementById('strengths-list');sl.innerHTML='';(data.strengths||[]).forEach(s=>{const li=document.createElement('li');li.textContent=s;sl.appendChild(li);});
+  const wl=document.getElementById('weaknesses-list');wl.innerHTML='';(data.weaknesses||[]).forEach(w=>{const li=document.createElement('li');li.textContent=w;wl.appendChild(li);});
+  const kw=document.getElementById('keywords-wrap');kw.innerHTML='';(data.missing_keywords||[]).forEach(k=>{const s=document.createElement('span');s.className='keyword';s.textContent=k;kw.appendChild(s);});
+  document.getElementById('suggestion-text').textContent=data.top_suggestion||'';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function suggestRoles(){
+  if(!selectedFile2){alert('Please upload a resume PDF!');return;}
+  document.getElementById('upload-section-2').style.display='none';
+  document.getElementById('loading-2').style.display='block';
+  document.getElementById('roles-btn').disabled=true;
+  const fd=new FormData();fd.append('file',selectedFile2);
+  try{const res=await fetch('/suggest-roles',{method:'POST',body:fd});const data=await res.json();showRoles(data);}
+  catch(e){alert('Something went wrong.');retryRoles();}
+}
+function showRoles(data){
+  document.getElementById('loading-2').style.display='none';
+  document.getElementById('role-results').style.display='block';
+  document.getElementById('roles-name').textContent=data.name?`Best Roles for ${data.name}`:'Your Best Career Matches';
+  const sw=document.getElementById('skills-wrap');sw.innerHTML='';(data.top_skills||[]).forEach(s=>{const tag=document.createElement('span');tag.className='skill-tag';tag.textContent=s;sw.appendChild(tag);});
+  const rl=document.getElementById('roles-list');rl.innerHTML='';
+  (data.roles||[]).forEach((r,i)=>{
+    const card=document.createElement('div');card.className='role-card';card.style.animationDelay=`${i*0.1}s`;
+    card.innerHTML=`<div class="role-match"><div class="role-match-val">${r.match}%</div><div class="role-match-label">Match</div></div><div class="role-info"><div class="role-title">${r.title}</div><div class="role-reason">${r.reason}</div><span class="role-salary">${r.salary}</span></div>`;
+    rl.appendChild(card);
+  });
+  document.getElementById('career-tip').textContent=data.career_tip||'';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function animateNumber(id,from,to,duration){
+  const el=document.getElementById(id);const start=performance.now();
+  function update(now){const p=Math.min((now-start)/duration,1);el.textContent=Math.round(from+(to-from)*p);if(p<1)requestAnimationFrame(update);}
+  requestAnimationFrame(update);
+}
+function retry(){selectedFile=null;document.getElementById('upload-section').style.display='block';document.getElementById('loading').style.display='none';document.getElementById('results').style.display='none';document.getElementById('analyze-btn').disabled=false;document.getElementById('drop-zone').classList.remove('loaded');document.getElementById('file-name').style.display='none';document.getElementById('job-role').value='';document.getElementById('resume-input').value='';}
+function retryRoles(){selectedFile2=null;document.getElementById('upload-section-2').style.display='block';document.getElementById('loading-2').style.display='none';document.getElementById('role-results').style.display='none';document.getElementById('roles-btn').disabled=false;document.getElementById('drop-zone-2').classList.remove('loaded');document.getElementById('file-name-2').style.display='none';document.getElementById('resume-input-2').value='';}
+</script>
+</body>
+</html>
